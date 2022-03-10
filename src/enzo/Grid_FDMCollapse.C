@@ -113,13 +113,11 @@ int grid::FDMCollapseInitializeGrid(int UseParticles, float ParticleMeanDensity)
  double afloat = double(a);
  double hmcoef = 5.9157166856e27*TimeUnits/POW(LengthUnits/afloat,2)/FDMMass;
 
-if(FDMCollapseAbsorbingBoundary){
 // Read Density, use it as the absorption coefficient on the boundary
   if (READFILE("GridDensity", GridRank, GridDimension,
          GridStartIndex, GridEndIndex, Offset, BaryonField[0],
          &tempbuffer, 0, 1) == FAIL) {
     ENZO_FAIL("Error reading density.\n");}
-}
 
 // Read wavefunction
   if (READFILE("GridRePsi", GridRank, GridDimension,
@@ -167,10 +165,10 @@ if(FDMCollapseAbsorbingBoundary){
       /* Particle values will be set below. */
       }
 	// set some test particles
-	ParticleCount = 1000;
+	ParticleCount = 1;
 
 	// set many particles
-	while (ParticleCount > 0) {
+	/*while (ParticleCount > 0) {
         if (SetupLoopCount > 0) {
 		    ParticleMass[npart] = ParticleMeanDensity;
 	        ParticleNumber[npart] = CollapseTestParticleCount++;
@@ -186,10 +184,9 @@ if(FDMCollapseAbsorbingBoundary){
 		}
 		ParticleCount--;
 		npart++;
-	}
+	}*/
 
-    // set particles following the FDM density
-    /*
+    // set particles following the Keplerian motion
     for (k = 0; k < GridDimension[2]; k++)
     for (j = 0; j < GridDimension[1]; j++)
     for (i = 0; i < GridDimension[0]; i++) {
@@ -218,7 +215,12 @@ if(FDMCollapseAbsorbingBoundary){
           //printf("x,y,z %f %f %f \n",x,y,z);
           //printf("%d %d %d \n",ind,indxp,indxn);
 
-		  ParticleCount += int(BaryonField[FDMDensNum][ind]/ParticleMeanDensity);
+	   double radius = sqrt((x-0.5)*(x-0.5)+(y-0.5)*(y-0.5));
+	   double height = abs(z-0.5);
+       if (radius>0.3 or height>0.005){
+		continue;  
+		}
+		  ParticleCount += 1; //int(BaryonField[FDMDensNum][ind]/ParticleMeanDensity);
 	      
 		  while (ParticleCount > 1) {
 		      if (SetupLoopCount > 0) {
@@ -233,25 +235,25 @@ if(FDMCollapseAbsorbingBoundary){
 
 		  // Set bulk velocity.
           // vx
-            vx = (BaryonField[RePsiNum][ind]*(BaryonField[ImPsiNum][indxp]-BaryonField[ImPsiNum][indxn])
+            /*vx = (BaryonField[RePsiNum][ind]*(BaryonField[ImPsiNum][indxp]-BaryonField[ImPsiNum][indxn])
                   - BaryonField[ImPsiNum][ind]*(BaryonField[RePsiNum][indxp]-BaryonField[RePsiNum][indxn]))
-                  *hmcoef/BaryonField[FDMDensNum][ind]/(2*CellWidth[0][i]);
-            //vx = max(vx,10);
+                  *hmcoef/BaryonField[FDMDensNum][ind]/(2*CellWidth[0][i]);*/
+            vx = -BaryonField[0][ind]*(y-0.5)/radius;
             ParticleVelocity[0][npart] = vx;
             //printf("vx %f \n",vx);
             if (GridRank>1){
-              vy = (BaryonField[RePsiNum][ind]*(BaryonField[ImPsiNum][indyp]-BaryonField[ImPsiNum][indyn])
+             /*vy = (BaryonField[RePsiNum][ind]*(BaryonField[ImPsiNum][indyp]-BaryonField[ImPsiNum][indyn])
                   - BaryonField[ImPsiNum][ind]*(BaryonField[RePsiNum][indyp]-BaryonField[RePsiNum][indyn]))
-                  *hmcoef/BaryonField[FDMDensNum][ind]/(2*CellWidth[1][j]);
-              //vy = max(vy,10);
+                  *hmcoef/BaryonField[FDMDensNum][ind]/(2*CellWidth[1][j]);*/
+            vy = BaryonField[0][ind]*(x-0.5)/radius;
               ParticleVelocity[1][npart] = vy;
               //printf("vy %f \n",vy);
             }
             if (GridRank>2){
-              vz = (BaryonField[RePsiNum][ind]*(BaryonField[ImPsiNum][indzp]-BaryonField[ImPsiNum][indzn])
+              /*vz = (BaryonField[RePsiNum][ind]*(BaryonField[ImPsiNum][indzp]-BaryonField[ImPsiNum][indzn])
                   - BaryonField[ImPsiNum][ind]*(BaryonField[RePsiNum][indzp]-BaryonField[RePsiNum][indzn]))
-                  *hmcoef/BaryonField[FDMDensNum][ind]/(2*CellWidth[2][k]);
-              //vz = max(vz,10);
+                  *hmcoef/BaryonField[FDMDensNum][ind]/(2*CellWidth[2][k]);*/
+              vz = 0;
               ParticleVelocity[2][npart] = vz;
               //printf("vz %f \n",vz);
             }
