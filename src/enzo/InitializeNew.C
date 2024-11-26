@@ -57,6 +57,10 @@ int ParallelFDMCollapseInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &Top
         TopGridData &MetaData);//FDM collapse, ParallelIO
 int ParallelFDMCollapseReInitialize(HierarchyEntry *TopGrid,
             TopGridData &MetaData);//FDM collapse, ParallelIo
+int ParallelmTDEInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &TopGrid,
+        TopGridData &MetaData);//FDM collapse, ParallelIO
+int ParallelmTDEReInitialize(HierarchyEntry *TopGrid,
+            TopGridData &MetaData);//FDM collapse, ParallelIo
 int HydroShockTubesInitialize(FILE *fptr, FILE *Outfptr,
 			      HierarchyEntry &TopGrid, TopGridData &MetaData);
 int CRShockTubesInitialize(FILE *fptr, FILE *Outfptr,
@@ -703,6 +707,11 @@ int InitializeNew(char *filename, HierarchyEntry &TopGrid,
   /* ???? */
   if (ProblemType ==300) {
     ret = PoissonSolverTestInitialize(fptr, Outfptr, TopGrid, MetaData);
+  }
+
+  // 301) FDM collapse
+  if ( ProblemType == 192 ){
+      ret = ParallelmTDEInitialize(fptr, Outfptr, TopGrid, MetaData);
   }
 
 

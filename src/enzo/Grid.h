@@ -2702,6 +2702,14 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
                                     float FDMParticleMeanDensity,
                                     int FDMCollapseSubgridsAreStatic,
                                     int TotalRefinement);
+
+  int ParallelmTDEInitializeGrid(char *mTDEDensityName, 
+                                         char *mTDEVelName1,
+										 char *mTDEVelName2,
+                                         char *mTDEVelName3,
+										 float mTDEBHMass,
+										 int mTDESubgridsAreStatic,
+										 int TotalRefinement);
 // -------------------------------------------------------------------------
 // Analysis functions for AnalysisBaseClass and it's derivatives.
 //

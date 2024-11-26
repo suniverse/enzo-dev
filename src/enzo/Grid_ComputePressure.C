@@ -99,8 +99,7 @@ int grid::ComputePressure(FLOAT time, float *pressure,
  
       if( EquationOfState == 1 ){
 	pressure[i] = IsothermalSoundSpeed *IsothermalSoundSpeed * BaryonField[DensNum][i];
-      }else{
-	if( EquationOfState == 0 )
+      }else if( EquationOfState == 0 ){
 	  total_energy  = BaryonField[TENum][i];
 	density       = BaryonField[DensNum][i];
 	velocity1     = BaryonField[Vel1Num][i];
@@ -159,8 +158,31 @@ int grid::ComputePressure(FLOAT time, float *pressure,
 
         }
 
-      }//EquationOfState == 0
+      }else{//EquationOfState == 0
+       if(EquationOfState==2){
+		float x,e,p,PressureUnits=1;
+		float TemperatureUnits, DensityUnits, LengthUnits,VelocityUnits, TimeUnits, aUnits = 1;
+		if (GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits,&TimeUnits, &VelocityUnits, Time) == FAIL) {
+		    ENZO_FAIL("Error in GetUnits.");}
+	     
+	    PressureUnits = DensityUnits*VelocityUnits*VelocityUnits;
+		
+	  	total_energy  = BaryonField[TENum][i];
+	    density       = BaryonField[DensNum][i];
+    	velocity1     = BaryonField[Vel1Num][i];
+	    if (MaxVelocityIndex > 1)
+	    velocity2   = BaryonField[Vel2Num][i];
+    	if (MaxVelocityIndex > 2)
+	    velocity3   = BaryonField[Vel3Num][i];
+	    
+		x = 1.0088e-2*POW(density*DensityUnits/2.,1./3);
+		p = 1.42180e25/(8*3.1415927*3.1415927)*(x*sqrt(1+x*x)*(2*x*x/3-1)+log(x+sqrt(1+x*x)));
+		e = 1.42180e25/(8*3.1415927*3.1415927)*(x*sqrt(1+x*x)*(2*x*x+1)-log(x+sqrt(1+x*x)));
+		pressure[i] = (p/PressureUnits,tiny_number);
 
+		BaryonField[TENum][i] = e/density/PressureUnits + OneHalf * (velocity1*velocity1 + velocity2*velocity2 + velocity3*velocity3);	   
+	   }//EquationOfState == 2
+	  }
     } // end of loop
  
   else
@@ -174,7 +196,7 @@ int grid::ComputePressure(FLOAT time, float *pressure,
 	  coefold*OldBaryonField[DensNum][i];
 	pressure[i] *= IsothermalSoundSpeed*IsothermalSoundSpeed;
 
-      }else{
+      }else if (EquationOfState==0){
 
 	total_energy  = coef   *   BaryonField[TENum][i] +
 	                coefold*OldBaryonField[TENum][i];
@@ -239,7 +261,28 @@ int grid::ComputePressure(FLOAT time, float *pressure,
 
 
        }
-      } //EquationOfState == 0
+      }else if(EquationOfState==2){
+		float x,e,p,PressureUnits=1;
+		float TemperatureUnits, DensityUnits, LengthUnits,VelocityUnits, TimeUnits, aUnits = 1;
+		if (GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits,&TimeUnits, &VelocityUnits, Time) == FAIL) {
+		    ENZO_FAIL("Error in GetUnits.");}
+	     
+	    PressureUnits = DensityUnits*VelocityUnits*VelocityUnits;
+		
+		density = coef*BaryonField[DensNum][i] + coefold*OldBaryonField[DensNum][i];
+		velocity1 = coef*BaryonField[Vel1Num][i] + coefold*OldBaryonField[Vel1Num][i];
+	    if (MaxVelocityIndex > 1)
+		    velocity2  = coef*BaryonField[Vel2Num][i] + coefold*OldBaryonField[Vel2Num][i];
+	    if (MaxVelocityIndex > 2)
+			velocity3  = coef*BaryonField[Vel3Num][i] + coefold*OldBaryonField[Vel3Num][i];
+	    
+		x = 1.0088e-2*POW(density*DensityUnits/2.,1./3);
+		p = 1.42180e25/(8*3.1415927*3.1415927)*(x*sqrt(1+x*x)*(2*x*x/3-1)+log(x+sqrt(1+x*x)));
+		e = 1.42180e25/(8*3.1415927*3.1415927)*(x*sqrt(1+x*x)*(2*x*x+1)-log(x+sqrt(1+x*x)));
+		pressure[i] = (p/PressureUnits,tiny_number);
+
+		BaryonField[TENum][i] = e/density/PressureUnits + OneHalf * (velocity1*velocity1 + velocity2*velocity2 + velocity3*velocity3);	   
+	   }//EquationOfState == 2
 
     } /* end of loop over cells */
  
